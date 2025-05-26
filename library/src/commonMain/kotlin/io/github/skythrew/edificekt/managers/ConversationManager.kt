@@ -5,6 +5,7 @@ import io.github.skythrew.edificekt.models.conversation.ConversationFolder
 import io.github.skythrew.edificekt.models.conversation.Message
 import io.github.skythrew.edificekt.models.conversation.MessageAttachment
 import io.github.skythrew.edificekt.resources.Conversation
+import io.github.skythrew.edificekt.responses.conversation.ConversationMaxDepthResponse
 import io.github.skythrew.edificekt.responses.conversation.VisibleRecipientsResponse
 import io.ktor.client.call.*
 import io.ktor.client.plugins.resources.*
@@ -67,4 +68,6 @@ class ConversationManager (
         }
 
     suspend fun getVisibleRecipients(search: String = ""): VisibleRecipientsResponse = client.httpClient.get(Conversation.VisibleRecipients(search = search)).body()
+
+    suspend fun getMaxDepth(): UInt = (client.httpClient.get(Conversation.MaxDepth()).body() as ConversationMaxDepthResponse).maxDepth
 }

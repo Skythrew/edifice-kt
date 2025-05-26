@@ -21,4 +21,7 @@ class Conversation {
 
     @Resource("visible")
     class VisibleRecipients(val parent: Conversation = Conversation(), val search: String)
+
+    @Resource("max-depth")
+    class MaxDepth(val parent: Conversation = Conversation())
 }
