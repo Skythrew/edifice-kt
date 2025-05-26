@@ -13,6 +13,7 @@ import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
@@ -94,7 +95,7 @@ class ConversationManager (
      *
      * @return The new draft message ID
      */
-    suspend fun writeDraftMessage(body: String, subject: String, to: List<ConversationUser>, cc: List<ConversationUser>, cci: List<ConversationUser>): String {
+    suspend fun writeDraftMessage(body: String, subject: String, to: List<ConversationUser>, cc: List<ConversationUser>, cci: List<ConversationUser>): Message {
         val json = client.httpClient.post(Conversation.Draft()) {
             contentType(ContentType.Application.Json)
             setBody(buildJsonObject {
@@ -116,7 +117,27 @@ class ConversationManager (
             })
         }.bodyAsText()
 
-        return Json.decodeFromString<JsonObject>(json)["id"]!!.jsonPrimitive.content
+        val messageId = Json.decodeFromString<JsonObject>(json)["id"]!!.jsonPrimitive.content
+
+        return Message(
+            id = messageId,
+            subject = subject,
+            from = client.userInfo!!.userId,
+            state = "DRAFT",
+            to = to.map { it.id },
+            cc = cc.map { it.id },
+            ccName = null,
+            cci = cci.map { it.id },
+            cciName = null,
+            rawDisplayNames = listOf(),
+            date = Clock.System.now().toEpochMilliseconds(),
+            unread = false,
+            response = null,
+            count = null,
+            hasAttachment = false,
+            body = body,
+            rawAttachments = listOf()
+        )
     }
 
     /**
@@ -128,22 +149,15 @@ class ConversationManager (
         client.httpClient.put(Conversation.Draft.Id(id = draftMessage.id)) {
             contentType(ContentType.Application.Json)
 
-            setBody(buildJsonObject {
-                put("body", draftMessage.body)
-                put("subject", draftMessage.subject)
+            setBody(draftMessage.toJson())
+        }
+    }
 
-                putJsonArray("to") {
-                    draftMessage.to.map { add(it) }
-                }
+    suspend fun sendMessage(message: Message) {
+        client.httpClient.post(Conversation.SendMessage(id = if (message.state == "DRAFT") message.id else null)) {
+            contentType(ContentType.Application.Json)
 
-                putJsonArray("cc") {
-                    draftMessage.cc.map { add(it) }
-                }
-
-                putJsonArray("cci") {
-                    draftMessage.cci.map { add(it) }
-                }
-            })
+            setBody(message.toJson())
         }
     }
 }

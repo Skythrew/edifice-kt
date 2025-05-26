@@ -4,7 +4,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 
 interface MessageAttachmentInterface {
     val id: String
@@ -83,4 +88,21 @@ data class Message(
 
     @Transient
     val attachments = rawAttachments?.map { MessageAttachment.fromRaw(this, it) }
+
+    fun toJson(): JsonObject = buildJsonObject {
+        put("body", body)
+        put("subject", subject)
+
+        putJsonArray("to") {
+            to.map { add(it) }
+        }
+
+        putJsonArray("cc") {
+            cc.map { add(it) }
+        }
+
+        putJsonArray("cci") {
+            cci.map { add(it) }
+        }
+    }
 }

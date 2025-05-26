@@ -30,4 +30,7 @@ class Conversation {
         @Resource("{id}")
         class Id(val parent: Draft = Draft(), val id: String)
     }
+
+    @Resource("send")
+    class SendMessage(val parent: Conversation = Conversation(), val id: String? = null)
 }

@@ -14,6 +14,7 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.resources.serialization.*
@@ -53,6 +54,7 @@ class EdificeClient (
             handleResponseExceptionWithRequest { exception, request ->
                 val clientException = exception as? ClientRequestException ?: return@handleResponseExceptionWithRequest
                 val exceptionResponse = clientException.response
+                println(exceptionResponse.bodyAsText())
                 val error: RequestError = exceptionResponse.body()
 
                 throw Exception("Edifice Error (${error.error}): ${error.description}")

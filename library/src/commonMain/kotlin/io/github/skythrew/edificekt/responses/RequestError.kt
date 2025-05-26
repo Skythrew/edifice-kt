@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RequestError(
     val error: String,
-    @SerialName("error_description") val description: String
+    @SerialName("error_description") val description: String? = null
 )
