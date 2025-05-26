@@ -2,11 +2,7 @@ package io.github.skythrew.edificekt
 
 import io.github.skythrew.edificekt.managers.ConversationManager
 import io.github.skythrew.edificekt.models.UserInfo
-import io.github.skythrew.edificekt.models.conversation.ConversationFolder
-import io.github.skythrew.edificekt.models.conversation.Message
-import io.github.skythrew.edificekt.models.conversation.MessageAttachment
 import io.github.skythrew.edificekt.resources.Auth
-import io.github.skythrew.edificekt.resources.Conversation
 import io.github.skythrew.edificekt.responses.AuthTokenResponse
 import io.github.skythrew.edificekt.responses.RequestError
 import io.ktor.client.*
@@ -18,20 +14,11 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.request.forms.*
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsBytes
-import io.ktor.client.statement.content
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.resources.serialization.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.add
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonArray
 
 class EdificeClient (
     val clientId: String,
@@ -123,6 +110,10 @@ class EdificeClient (
     ) {
         httpClient = httpClient.config {
             install(io.ktor.client.plugins.auth.Auth) {
+                reAuthorizeOnResponse { response ->
+                    response.status.value == 302 // Reauthorize on redirect (which is only done when tokens are expired)
+                }
+
                 bearer {
                     loadTokens {
                         BearerTokens(accessToken, refreshToken)
