@@ -71,8 +71,16 @@ class ConversationManager (
             })
         }
 
+    /**
+     * Get the possible recipients for a message.
+     *
+     * @param search A search pattern for the recipient's name
+     */
     suspend fun getVisibleRecipients(search: String = ""): VisibleRecipientsResponse = client.httpClient.get(Conversation.VisibleRecipients(search = search)).body()
 
+    /**
+     * Get the maximum conversation depth.
+     */
     suspend fun getMaxDepth(): UInt = (client.httpClient.get(Conversation.MaxDepth()).body() as ConversationMaxDepthResponse).maxDepth
 
     /**
