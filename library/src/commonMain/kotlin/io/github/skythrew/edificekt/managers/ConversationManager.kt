@@ -5,14 +5,12 @@ import io.github.skythrew.edificekt.models.conversation.ConversationFolder
 import io.github.skythrew.edificekt.models.conversation.Message
 import io.github.skythrew.edificekt.models.conversation.MessageAttachment
 import io.github.skythrew.edificekt.resources.Conversation
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.resources.get
-import io.ktor.client.plugins.resources.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsBytes
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import io.github.skythrew.edificekt.responses.conversation.VisibleRecipientsResponse
+import io.ktor.client.call.*
+import io.ktor.client.plugins.resources.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -67,4 +65,6 @@ class ConversationManager (
                 put("unread", !read)
             })
         }
+
+    suspend fun getVisibleRecipients(search: String = ""): VisibleRecipientsResponse = client.httpClient.get(Conversation.VisibleRecipients(search = search)).body()
 }

@@ -1,7 +1,6 @@
 package io.github.skythrew.edificekt.resources
 
-import io.github.skythrew.edificekt.EdificeClient
-import io.ktor.resources.Resource
+import io.ktor.resources.*
 
 @Resource("/conversation")
 class Conversation {
@@ -19,4 +18,7 @@ class Conversation {
 
     @Resource("toggleUnread")
     class MessageToggleUnread(val parent: Conversation = Conversation())
+
+    @Resource("visible")
+    class VisibleRecipients(val parent: Conversation = Conversation(), val search: String)
 }
