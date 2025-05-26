@@ -2,6 +2,7 @@ package io.github.skythrew.edificekt.managers
 
 import io.github.skythrew.edificekt.EdificeClient
 import io.github.skythrew.edificekt.models.conversation.ConversationFolder
+import io.github.skythrew.edificekt.models.conversation.ConversationUser
 import io.github.skythrew.edificekt.models.conversation.Message
 import io.github.skythrew.edificekt.models.conversation.MessageAttachment
 import io.github.skythrew.edificekt.resources.Conversation
@@ -12,8 +13,11 @@ import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 
@@ -70,4 +74,40 @@ class ConversationManager (
     suspend fun getVisibleRecipients(search: String = ""): VisibleRecipientsResponse = client.httpClient.get(Conversation.VisibleRecipients(search = search)).body()
 
     suspend fun getMaxDepth(): UInt = (client.httpClient.get(Conversation.MaxDepth()).body() as ConversationMaxDepthResponse).maxDepth
+
+    /**
+     * Write a draft message.
+     *
+     * @param body The HTML-formatted message body
+     * @param subject The message subject
+     * @param to The list of primary recipients
+     * @param cc The list of carbon copy recipients
+     * @param cci The list of black carbon copy recipients
+     *
+     * @return The new draft message ID
+     */
+    suspend fun writeDraftMessage(body: String, subject: String, to: List<ConversationUser>, cc: List<ConversationUser>, cci: List<ConversationUser>): String {
+        val json = client.httpClient.post(Conversation.Draft()) {
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject {
+                put("body", body)
+
+                put("subject", subject)
+
+                putJsonArray("to") {
+                    to.map { add(it.id) }
+                }
+
+                putJsonArray("cc") {
+                    cc.map { add(it.id) }
+                }
+
+                putJsonArray("cci") {
+                    cci.map { add(it.id) }
+                }
+            })
+        }.bodyAsText()
+
+        return Json.decodeFromString<JsonObject>(json)["id"]!!.jsonPrimitive.content
+    }
 }
