@@ -118,4 +118,32 @@ class ConversationManager (
 
         return Json.decodeFromString<JsonObject>(json)["id"]!!.jsonPrimitive.content
     }
+
+    /**
+     * Update a draft message with its new content.
+     *
+     * @param draftMessage The new draft message (based on another one which should have been previously fetched)
+     */
+    suspend fun updateDraftMessage(draftMessage: Message) {
+        client.httpClient.put(Conversation.Draft.Id(id = draftMessage.id)) {
+            contentType(ContentType.Application.Json)
+
+            setBody(buildJsonObject {
+                put("body", draftMessage.body)
+                put("subject", draftMessage.subject)
+
+                putJsonArray("to") {
+                    draftMessage.to.map { add(it) }
+                }
+
+                putJsonArray("cc") {
+                    draftMessage.cc.map { add(it) }
+                }
+
+                putJsonArray("cci") {
+                    draftMessage.cci.map { add(it) }
+                }
+            })
+        }
+    }
 }

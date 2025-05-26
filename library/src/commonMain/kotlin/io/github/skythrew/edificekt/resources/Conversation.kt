@@ -26,5 +26,8 @@ class Conversation {
     class MaxDepth(val parent: Conversation = Conversation())
 
     @Resource("draft")
-    class Draft(val parent: Conversation = Conversation())
+    class Draft(val parent: Conversation = Conversation()) {
+        @Resource("{id}")
+        class Id(val parent: Draft = Draft(), val id: String)
+    }
 }
