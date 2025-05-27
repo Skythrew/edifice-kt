@@ -153,11 +153,57 @@ class ConversationManager (
         }
     }
 
+    /**
+     * Send a message.
+     *
+     * @param message The message to send
+     */
     suspend fun sendMessage(message: Message) {
         client.httpClient.post(Conversation.SendMessage(id = if (message.state == "DRAFT") message.id else null)) {
             contentType(ContentType.Application.Json)
 
             setBody(message.toJson())
         }
+    }
+
+    /**
+     * Move the given messages to trash.
+     *
+     * @param messages Messages to move to trash
+     */
+    suspend fun moveToTrash(messages: List<Message>) {
+        client.httpClient.put(Conversation.Trash()) {
+            contentType(ContentType.Application.Json)
+
+            setBody(buildJsonObject {
+                putJsonArray("id") {
+                    messages.map { add(it.id) }
+                }
+            })
+        }
+    }
+
+    /**
+     * Restore messages from trash.
+     *
+     * @param messages Messages to restore
+     */
+    suspend fun restoreFromTrash(messages: List<Message>) {
+        client.httpClient.put(Conversation.RestoreFromTrash()) {
+            contentType(ContentType.Application.Json)
+
+            setBody(buildJsonObject {
+                putJsonArray("id") {
+                    messages.map { add(it.id) }
+                }
+            })
+        }
+    }
+
+    /**
+     * Empty trash folder.
+     */
+    suspend fun emptyTrash() {
+        client.httpClient.delete(Conversation.EmptyTrash())
     }
 }

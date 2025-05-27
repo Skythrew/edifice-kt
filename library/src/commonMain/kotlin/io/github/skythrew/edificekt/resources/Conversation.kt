@@ -33,4 +33,13 @@ class Conversation {
 
     @Resource("send")
     class SendMessage(val parent: Conversation = Conversation(), val id: String? = null)
+
+    @Resource("trash")
+    class Trash(val parent: Conversation = Conversation())
+
+    @Resource("emptyTrash")
+    class EmptyTrash(val parent: Conversation = Conversation())
+
+    @Resource("restore")
+    class RestoreFromTrash(val parent: Conversation = Conversation())
 }
