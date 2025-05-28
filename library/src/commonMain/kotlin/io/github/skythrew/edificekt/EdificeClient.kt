@@ -73,7 +73,7 @@ class EdificeClient (
      * @param refreshToken The current refresh token to use to fetch new ones
      *
      */
-    suspend fun refreshToken(refreshToken: String): AuthTokenResponse {
+    private suspend fun refreshToken(refreshToken: String): AuthTokenResponse {
         return httpClient.submitForm(href(ResourcesFormat(), Auth.Oauth2.Token()), parameters {
             append("client_id", clientId)
             append("client_secret", clientSecret)
@@ -94,6 +94,25 @@ class EdificeClient (
             append("client_secret", clientSecret)
             append("grant_type", "saml2")
             append("assertion", saml)
+            append("scope", scope.joinToString(" "))
+        })
+
+        return response.body()
+    }
+
+    /**
+     * Get authentication tokens by credentials.
+     *
+     * @param username
+     * @param password
+     */
+    suspend fun getTokensByCredentials(username: String, password: String, scope: List<String>): AuthTokenResponse {
+        val response = httpClient.submitForm(href(ResourcesFormat(), Auth.Oauth2.Token()), parameters {
+            append("client_id", clientId)
+            append("client_secret", clientSecret)
+            append("grant_type", "password")
+            append("username", username)
+            append("password", password)
             append("scope", scope.joinToString(" "))
         })
 
