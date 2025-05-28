@@ -12,6 +12,9 @@ class Conversation {
 
     @Resource("message/{messageId}")
     class Message(val parent: Conversation = Conversation(), val messageId: String) {
+        @Resource("attachment")
+        class AttachmentUpload(val parent: Message)
+
         @Resource("attachment/{attachmentId}")
         class Attachment(val parent: Message, val attachmentId: String)
     }

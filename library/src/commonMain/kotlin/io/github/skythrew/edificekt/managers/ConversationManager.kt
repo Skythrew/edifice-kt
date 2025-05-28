@@ -11,6 +11,8 @@ import io.github.skythrew.edificekt.responses.conversation.VisibleRecipientsResp
 import io.ktor.client.call.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.datetime.Clock
@@ -205,5 +207,31 @@ class ConversationManager (
      */
     suspend fun emptyTrash() {
         client.httpClient.delete(Conversation.EmptyTrash())
+    }
+
+    /**
+     * Upload an attachment to the given message
+     *
+     * @param message The message where the attachment should be uploaded
+     * @param fileName The name to give to the file
+     * @param data The file data to upload
+     *
+     * @return Attachment ID
+     */
+    suspend fun uploadAttachment(message: Message, fileName: String, data: ByteArray): String {
+        val response = client.httpClient.post(Conversation.Message.AttachmentUpload(Conversation.Message(messageId = message.id))) {
+            setBody(MultiPartFormDataContent(
+                formData {
+                    append("file", data, Headers.build {
+                        append(HttpHeaders.ContentDisposition, "filename=\"${fileName}\"")
+                    })
+                },
+                boundary = "EdificeKtBoundary"
+            ))
+        }
+
+        val json = Json.decodeFromString<JsonObject>(response.bodyAsText())
+
+        return json["id"]!!.jsonPrimitive.content
     }
 }
