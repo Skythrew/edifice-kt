@@ -22,8 +22,6 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
 class EdificeClient (
-    val clientId: String,
-    val clientSecret: String,
     val instanceUrl: String,
     private val debug: Boolean = false
 ) {
@@ -73,7 +71,7 @@ class EdificeClient (
      * @param refreshToken The current refresh token to use to fetch new ones
      *
      */
-    private suspend fun refreshToken(refreshToken: String): AuthTokenResponse {
+    private suspend fun refreshToken(clientId: String, clientSecret: String, refreshToken: String): AuthTokenResponse {
         return httpClient.submitForm(href(ResourcesFormat(), Auth.Oauth2.Token()), parameters {
             append("client_id", clientId)
             append("client_secret", clientSecret)
@@ -85,10 +83,12 @@ class EdificeClient (
     /**
      * Get authentication tokens by SAML grant type.
      *
+     * @param clientId
+     * @param clientSecret
      * @param saml The SAMLResponse to use
      * @param scope The tokens' scope (see documentation)
      */
-    suspend fun getTokensBySaml(saml: String, scope: List<String>): AuthTokenResponse {
+    suspend fun getTokensBySaml(clientId: String, clientSecret: String, saml: String, scope: List<String>): AuthTokenResponse {
         val response = httpClient.submitForm(href(ResourcesFormat(), Auth.Oauth2.Token()), parameters {
             append("client_id", clientId)
             append("client_secret", clientSecret)
@@ -103,10 +103,12 @@ class EdificeClient (
     /**
      * Get authentication tokens by credentials.
      *
+     * @param clientId
+     * @param clientSecret
      * @param username
      * @param password
      */
-    suspend fun getTokensByCredentials(username: String, password: String, scope: List<String>): AuthTokenResponse {
+    suspend fun getTokensByCredentials(clientId: String, clientSecret: String, username: String, password: String, scope: List<String>): AuthTokenResponse {
         val response = httpClient.submitForm(href(ResourcesFormat(), Auth.Oauth2.Token()), parameters {
             append("client_id", clientId)
             append("client_secret", clientSecret)
@@ -126,6 +128,8 @@ class EdificeClient (
      * @param refreshToken OAuth2 refresh token
      */
     suspend fun loginByOauth2Token(
+        clientId: String,
+        clientSecret: String,
         accessToken: String,
         refreshToken: String
     ) {
@@ -141,7 +145,7 @@ class EdificeClient (
                     }
 
                     refreshTokens {
-                        val tokenResponse: AuthTokenResponse = refreshToken(oldTokens?.refreshToken.toString())
+                        val tokenResponse: AuthTokenResponse = refreshToken(clientId, clientSecret, oldTokens?.refreshToken.toString())
 
                         BearerTokens(tokenResponse.accessToken, tokenResponse.refreshToken)
                     }
