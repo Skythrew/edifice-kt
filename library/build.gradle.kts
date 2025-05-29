@@ -37,7 +37,6 @@ kotlin {
                 implementation(libs.ktor.client.serialization.json)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.client.logging)
-                implementation("ch.qos.logback:logback-classic:1.5.18")
             }
         }
 
@@ -50,6 +49,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(libs.ktor.client.cio)
+                implementation("ch.qos.logback:logback-classic:1.5.18")
             }
         }
 
