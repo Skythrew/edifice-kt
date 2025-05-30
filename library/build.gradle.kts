@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "io.github.skythrew"
-version = "1.0.2"
+version = "1.0.3"
 
 kotlin {
     jvm()
