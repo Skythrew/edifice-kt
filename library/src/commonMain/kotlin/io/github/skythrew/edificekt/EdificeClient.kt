@@ -14,7 +14,7 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.request.forms.*
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.resources.serialization.*
@@ -25,6 +25,12 @@ class EdificeClient (
     val instanceUrl: String,
     private val debug: Boolean = false
 ) {
+    private var _accessToken: String? = null
+    private var _refreshToken: String? = null
+
+    val accessToken get() = _accessToken
+    val refreshToken get() = _refreshToken
+
     internal var httpClient = HttpClient {
         defaultRequest {
             url(instanceUrl)
@@ -130,8 +136,8 @@ class EdificeClient (
     suspend fun loginByOauth2Token(
         clientId: String,
         clientSecret: String,
-        accessToken: String,
-        refreshToken: String
+        accessTokenParam: String,
+        refreshTokenParam: String
     ) {
         httpClient = httpClient.config {
             install(io.ktor.client.plugins.auth.Auth) {
@@ -141,11 +147,16 @@ class EdificeClient (
 
                 bearer {
                     loadTokens {
-                        BearerTokens(accessToken, refreshToken)
+                        _accessToken = accessTokenParam
+                        _refreshToken = refreshTokenParam
+                        BearerTokens(accessTokenParam, refreshTokenParam)
                     }
 
                     refreshTokens {
                         val tokenResponse: AuthTokenResponse = refreshToken(clientId, clientSecret, oldTokens?.refreshToken.toString())
+
+                        _accessToken = tokenResponse.accessToken
+                        _refreshToken = tokenResponse.refreshToken
 
                         BearerTokens(tokenResponse.accessToken, tokenResponse.refreshToken)
                     }
