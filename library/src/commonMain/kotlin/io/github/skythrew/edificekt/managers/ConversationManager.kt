@@ -15,6 +15,7 @@ import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.resources.Resource
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -156,12 +157,63 @@ class ConversationManager (
     }
 
     /**
-     * Send a message.
+     * Send a message directly (without sending a draft).
      *
-     * @param message The message to send
+     * @param body The HTML-formatted message body
+     * @param subject The message subject
+     * @param to The list of primary recipients
+     * @param cc The list of carbon copy recipients
+     * @param cci The list of black carbon copy recipients
+     * @param replyTo The message to reply to
      */
-    suspend fun sendMessage(message: Message) {
-        client.httpClient.post(Conversation.SendMessage(id = if (message.state == "DRAFT") message.id else null)) {
+    suspend fun sendMessage(body: String, subject: String, to: List<ConversationUser>, cc: List<ConversationUser>, cci: List<ConversationUser>, replyTo: Message? = null) {
+        val body = buildJsonObject {
+            put("body", body)
+            put("subject", subject)
+
+            putJsonArray("to") {
+                to.map { add(it.id) }
+            }
+
+            putJsonArray("cc") {
+                cc.map { add(it.id) }
+            }
+
+            putJsonArray("cci") {
+                cci.map { add(it.id) }
+            }
+        }
+
+        if (replyTo == null)
+            client.httpClient.post(Conversation.SendMessage()) {
+                contentType(ContentType.Application.Json)
+
+                setBody(body)
+            }
+        else
+            client.httpClient.post(Conversation.SendMessageReply(replyTo = replyTo.id)) {
+                contentType(ContentType.Application.Json)
+
+                setBody(body)
+            }
+    }
+
+    /**
+     * Send a draft message.
+     *
+     * Please note that you can't reply to a message by sending a draft message.
+     *
+     * @param message The draft message to send
+     */
+    suspend fun sendDraftMessage(message: Message) {
+        if (message.state != "DRAFT")
+            error("Cannot send message with state (${message.state})")
+
+        val id = message.id
+
+        client.httpClient.post(
+            Conversation.SendDraftMessage(id = id)
+        ) {
             contentType(ContentType.Application.Json)
 
             setBody(message.toJson())

@@ -1,6 +1,7 @@
 package io.github.skythrew.edificekt.resources
 
 import io.ktor.resources.*
+import kotlinx.serialization.SerialName
 
 @Resource("/conversation")
 class Conversation {
@@ -35,7 +36,13 @@ class Conversation {
     }
 
     @Resource("send")
-    class SendMessage(val parent: Conversation = Conversation(), val id: String? = null)
+    class SendMessage(val parent: Conversation = Conversation())
+
+    @Resource("send")
+    class SendDraftMessage(val parent: Conversation = Conversation(), val id: String)
+
+    @Resource("send")
+    class SendMessageReply(val parent: Conversation = Conversation(), @SerialName("In-Reply-To") val replyTo: String)
 
     @Resource("trash")
     class Trash(val parent: Conversation = Conversation())
